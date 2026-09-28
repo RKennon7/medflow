@@ -1,8 +1,12 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from .base import Base
 from .enums import WorkOrderPriority, WorkOrderStatus
-from .technician import Technician
-from .equipment import Equipment
-from .service_report import ServiceReport
+
+if TYPE_CHECKING:
+    from .technician import Technician
+    from .equipment import Equipment
+    from .service_report import ServiceReport
 
 from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy import Enum as SqlEnum
@@ -31,7 +35,7 @@ class WorkOrder(Base):
         default=WorkOrderStatus.PENDING,
     )
     equipment_id: Mapped[int] = mapped_column(Integer, ForeignKey("equipment.id"))
-    technician_id: Mapped[int] = mapped_column(Integer, ForeignKey("technician.id"))
+    technician_id: Mapped[int] = mapped_column(Integer, ForeignKey("technicians.id"))
 
     # table relationships:
     equipment: Mapped["Equipment"] = relationship(back_populates="work_orders")

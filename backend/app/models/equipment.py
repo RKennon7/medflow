@@ -1,7 +1,12 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from .base import Base
 from .enums import EquipmentStatus
-from .hospital import Hospital
-from .work_order import WorkOrder
+
+if TYPE_CHECKING:
+    from .hospital import Hospital
+    from .work_order import WorkOrder
+
 from decimal import Decimal
 from sqlalchemy import Integer, String, ForeignKey, Numeric
 from sqlalchemy import Enum as SqlEnum

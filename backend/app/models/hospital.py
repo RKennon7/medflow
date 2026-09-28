@@ -1,10 +1,15 @@
 """
 fields: id, name, location_region, capacity, supervisor_id
 """
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from .base import Base
-from .equipment import Equipment
-from .technician import Technician
-from .supervisor import Supervisor
+
+if TYPE_CHECKING:
+    from .equipment import Equipment
+    from .technician import Technician
+    from .supervisor import Supervisor
+
 from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

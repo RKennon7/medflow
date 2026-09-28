@@ -1,5 +1,10 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from .base import Base
-from .work_order import WorkOrder
+
+if TYPE_CHECKING:
+    from .work_order import WorkOrder
+
 from datetime import datetime
 from sqlalchemy import Integer, ForeignKey, Text, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship

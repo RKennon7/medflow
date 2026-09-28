@@ -1,6 +1,11 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from .base import Base
-from .work_order import WorkOrder
-from .hospital import Hospital
+
+if TYPE_CHECKING:
+    from .work_order import WorkOrder
+    from .hospital import Hospital
+
 from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
