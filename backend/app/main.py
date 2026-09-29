@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
 from app.config import settings
+from app.routers import auth
 
 FRONTEND_ORIGIN = settings.frontend_origin
 
@@ -22,6 +23,7 @@ app.add_middleware(
 )
 
 # include routers here
+app.include_router(auth.router)
 
 # simple health check endpoint
 @app.get("/health", tags=["health"])

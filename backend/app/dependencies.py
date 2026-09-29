@@ -12,7 +12,7 @@ from app.security import decode_access_token
 
 # FastAPI dependency to provide an async db session to any route:
 async def get_db() -> AsyncGenerator[AsyncSession | None]:
-    async with AsyncSessionLocal as session:
+    async with AsyncSessionLocal() as session:
         yield session
         
 # dependencies to get current user from JWT and require user role: RBAC and user verification
