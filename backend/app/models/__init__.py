@@ -6,6 +6,7 @@ from .enums import EquipmentStatus, WorkOrderStatus, WorkOrderPriority, UserRole
 from .service_report import ServiceReport
 from .technician import Technician
 from .supervisor import Supervisor
+from .user import User
 
 __all__ = [
     "Base",
