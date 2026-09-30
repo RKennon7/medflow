@@ -13,11 +13,11 @@ async def seed_database():
 
         equipment = [
             Equipment(id=1, serial_number="XR-1001", model="Siemens Mobilett Elara Max X-Ray", charge_level=18.5, hospital_id=1, status=EquipmentStatus.IN_USE),
-            Equipment(id=2, serial_number="VN-3001", model="Philips Respironics V60 Ventilator", charge_level=76.0, hospital_id=1, status=EquipmentStatus.IDLE),
+            Equipment(id=2, serial_number="VN-3001", model="Philips Respironics V60 Ventilator", charge_level=76.0, hospital_id=1, status=EquipmentStatus.AVAILABLE),
             Equipment(id=3, serial_number="DF-2050", model="Zoll R Series Defibrillator", charge_level=9.0, hospital_id=2, status=EquipmentStatus.IN_USE),
             Equipment(id=4, serial_number="US-4001", model="GE Venue Go Ultrasound", charge_level=42.0, hospital_id=2, status=EquipmentStatus.MAINTENANCE),
             Equipment(id=5, serial_number="XR-1002", model="Siemens Mobilett Elara Max X-Ray", charge_level=18.5, hospital_id=2, status=EquipmentStatus.MAINTENANCE),
-            Equipment(id=6, serial_number="VN-3002", model="Philips Respironics V60 Ventilator", charge_level=76.0, hospital_id=2, status=EquipmentStatus.IDLE),
+            Equipment(id=6, serial_number="VN-3002", model="Philips Respironics V60 Ventilator", charge_level=76.0, hospital_id=2, status=EquipmentStatus.AVAILABLE),
             Equipment(id=7, serial_number="DF-2069", model="Zoll R Series Defibrillator", charge_level=25.0, hospital_id=1, status=EquipmentStatus.IN_USE),
             Equipment(id=8, serial_number="US-4002", model="GE Venue Go Ultrasound", charge_level=84.0, hospital_id=1, status=EquipmentStatus.MAINTENANCE),
         ]

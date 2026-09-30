@@ -26,7 +26,7 @@ class Equipment(Base):
             name="equipment_status",
             values_callable=lambda enum_cls: [member.value for member in enum_cls],
         ),
-        default = EquipmentStatus.IDLE,
+        default = EquipmentStatus.AVAILABLE,
     )
     charge_level: Mapped[Decimal] = mapped_column(Numeric(5,2))
     hospital_id: Mapped[int] = mapped_column(Integer, ForeignKey("hospitals.id"))

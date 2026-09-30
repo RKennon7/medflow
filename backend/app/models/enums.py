@@ -2,7 +2,7 @@ from enum import Enum
 
 class EquipmentStatus(str, Enum):
     # available, in-use, maintenance, offline
-    IDLE = "Idle"
+    AVAILABLE = "Available"
     IN_USE = "In-Use"
     MAINTENANCE = "Maintenance"
     OFFLINE = "Offline"
