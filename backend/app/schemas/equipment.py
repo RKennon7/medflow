@@ -23,3 +23,8 @@ class EquipmentUpdate(BaseModel):
     status: EquipmentStatus | None = None
     charge_level: Decimal | None = Field(ge=0, le=100, default=None)
     hospital_id: int | None
+
+class ReliabilityRead(BaseModel):
+    equipment_model: str
+    completed_count: int
+    failed_count: int

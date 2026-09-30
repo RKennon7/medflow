@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, get_current_user, require_role
 from app.models import Equipment, EquipmentStatus, User, UserRole, WorkOrder, WorkOrderStatus
-from app.schemas.equipment import EquipmentRead, EquipmentCreate, EquipmentUpdate
+from app.schemas.equipment import EquipmentRead, EquipmentCreate, EquipmentUpdate, ReliabilityRead
 
 #singular equipment because there is no plural form of the word
 router = APIRouter(prefix="/equipment", tags=["equipment"])
@@ -34,7 +34,27 @@ async def create_equipment(
     await db.refresh(equipment)
     return equipment
 
-#TODO add reliability router here
+#TODO add reliability router here, any user can view
+@router.get("/reliability", response_model=ReliabilityRead)
+async def get_model_reliability(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user)
+):
+    statement = (
+        select(
+            Equipment.model.label("equipment_model"),
+            func.count().filter(WorkOrder.status == WorkOrderStatus.COMPLETED).label("completed_count"),
+            func.count().filter(WorkOrder.status == WorkOrderStatus.FAILED).label("failed_count"),
+        )
+        .join(WorkOrder, Equipment.id == WorkOrder.equipment_id)
+        .where(WorkOrder.status.in_([WorkOrderStatus.COMPLETED, WorkOrderStatus.FAILED]))
+        .group_by(Equipment.model)
+        .order_by(Equipment.model)
+    )
+
+    result = await db.execute(statement)
+    return result.mappings().all()
+
 
 # get equipment by id:
 @router.get("/{equipment_id}", response_model=EquipmentRead)
