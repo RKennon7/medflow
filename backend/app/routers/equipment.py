@@ -35,7 +35,7 @@ async def create_equipment(
     return equipment
 
 #TODO add reliability router here, any user can view
-@router.get("/reliability", response_model=ReliabilityRead)
+@router.get("/reliability", response_model=list[ReliabilityRead])
 async def get_model_reliability(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user)
@@ -107,7 +107,7 @@ async def update_equipment(
     update_data = payload.model_dump(exclude_unset=True)
 
     # apply updates to equipment object:
-    for field, value in update_data:
+    for field, value in update_data.items():
         setattr(equipment, field, value)
 
     await db.commit()

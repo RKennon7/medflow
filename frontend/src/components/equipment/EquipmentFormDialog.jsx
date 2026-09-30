@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react';
 import {Dialog, DialogTitle, DialogContent, InputLabel, Select, MenuItem,
     FormControl, DialogActions, TextField, Button} from '@mui/material';
 
-const STATUS_OPTIONS = ['Available, In-Use', 'Maintenance', 'Offline'];
+const STATUS_OPTIONS = ['Available', 'In-Use', 'Maintenance', 'Offline'];
 
 function EquipmentFormDialog({open, initialValues, onClose, onSave}){
     const [formData, setFormData] = useState({serial_number: '', model: '', charge_level: '', status: '', hospital_id: ''});

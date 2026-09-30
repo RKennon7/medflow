@@ -24,9 +24,11 @@ function Dashboard(){
           <><Typography variant="h5" color="primary" component="h2" gutterBottom>
             Medical Equipment
           </Typography>
+           
           <Box sx={{mb: 4}}>
             <EquipmentDataGrid onSuccess={setNotification} />
           </Box>
+          
           </>
         )}
 

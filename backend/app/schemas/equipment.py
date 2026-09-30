@@ -28,3 +28,5 @@ class ReliabilityRead(BaseModel):
     equipment_model: str
     completed_count: int
     failed_count: int
+
+    model_config = ConfigDict(from_attributes=True)
