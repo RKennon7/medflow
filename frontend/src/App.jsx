@@ -5,6 +5,10 @@ import {useState} from 'react';
 import LoginForm from './components/auth/LoginForm.jsx';
 import {AuthProvider, useAuth} from './context/AuthContext.jsx';
 import EquipmentDataGrid from './components/equipment/EquipmentDataGrid.jsx';
+import ReliabilityList from './components/equipment/ReliabilityList.jsx';
+import DiscrepancyDataGrid from './components/work-orders/DiscrepancyDataList.jsx';
+import MaintenanceFlags from './components/analytics/MaintenanceFlags.jsx';
+import ReportingLines from './components/analytics/ReportingLines.jsx';
 
 function Dashboard(){
   const {user, logout} = useAuth()
@@ -28,22 +32,42 @@ function Dashboard(){
           <Box sx={{mb: 4}}>
             <EquipmentDataGrid onSuccess={setNotification} />
           </Box>
+
+          <Typography variant="h5" component="h2" color='primary' gutterBottom>
+            Equipment Reliability Report
+          </Typography>
+          <Box mb={4}>
+            <ReliabilityList />
+          </Box>
+          
+          </>
+        )}
+
+        {activeTab === 1 && (
+          <><Typography variant="h5" component="h2" color='primary' gutterBottom>
+            Co-Location Discrepancies
+          </Typography>
+          <Box sx={{mb: 4}}>
+            <DiscrepancyDataGrid />
+          </Box>
           
           </>
         )}
 
         {activeTab === 2 && (
           <><Typography variant="h5" component="h2" color='primary' gutterBottom>
-            More features coming soon.
+            Maintenance Flags
           </Typography>
-          
-          </>
-        )}
+          <Box sx={{mb: 4}}>
+            <MaintenanceFlags />
+          </Box>
 
-        {activeTab === 3 && (
-          <><Typography variant="h5" component="h2" color='primary' gutterBottom>
-            More features coming soon.
+          <Typography variant="h5" component="h2" color='primary' gutterBottom>
+            Reporting Lines
           </Typography>
+          <Box>
+            <ReportingLines />
+          </Box>
           
           </>
         )}
