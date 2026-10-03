@@ -4,9 +4,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, get_current_user
 from app.models import WorkOrder, WorkOrderPriority, Equipment, Technician, User
-from app.schemas.work_order import DiscrepancyRead
+from app.schemas.work_order import DiscrepancyRead, WorkOrderRead, WorkOrderStatusUpdate
 
 router = APIRouter(prefix="/work-orders", tags=["work-orders"])
+
+# list all work orders:
+@router.get("", response_model=list[WorkOrderRead])
+async def list_work_orders(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user)
+) -> list[WorkOrder]:
+    statement = select(WorkOrder).order_by(WorkOrder.id)
+    result = await db.execute(statement)
+    return list(result.scalars().all())
 
 """
 route to return co-location discrepancies between technician and equipment location

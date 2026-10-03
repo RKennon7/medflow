@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, get_current_user, require_role
 from app.models import Equipment, EquipmentStatus, User, UserRole, WorkOrder, WorkOrderStatus
-from app.schemas.equipment import EquipmentRead, EquipmentCreate, EquipmentUpdate, ReliabilityRead
+from app.schemas.equipment import EquipmentRead, EquipmentCreate, EquipmentUpdate, ReliabilityRead, EquipmentStatusUpdate
 
 #singular equipment because there is no plural form of the word
 router = APIRouter(prefix="/equipment", tags=["equipment"])
@@ -113,4 +113,24 @@ async def update_equipment(
     await db.commit()
     await db.refresh(equipment)
     return equipment
+
+# only update equipment status: requires technician role
+@router.patch("/{equipment_id}/status", response_model=EquipmentRead)
+async def update_equipment_status(
+    equipment_id: int,
+    payload: EquipmentStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(UserRole.FIELD_TECHNICIAN))
+) -> Equipment:
     
+    equipment = await db.get(Equipment, equipment_id)
+    if equipment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Equipment with id {equipment_id} not found.",
+        )
+
+    equipment.status = payload.status
+    await db.commit()
+    await db.refresh(equipment)
+    return equipment
