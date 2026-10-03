@@ -34,7 +34,7 @@ function ReliabilityList(){
     if (error) return <Alert severity="error">{error}</Alert>;
 
     return(
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{justifyContent: "center"}}>
           {data.map((item) => (
             <Grid item key={item.equipment_model} xs={12} sm={6} md={4}>
               <ReliabilityCard

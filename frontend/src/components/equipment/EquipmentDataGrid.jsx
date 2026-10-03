@@ -3,11 +3,14 @@ import {DataGrid, GridActionsCellItem} from '@mui/x-data-grid';
 import {Alert, Box, Button, CircularProgress, Grid, Dialog, DialogActions, DialogTitle} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import BatteryAlert from '@mui/icons-material/BatteryAlert'
 import apiClient from '../../api/client.js';
 import EquipmentFormDialog from './EquipmentFormDialog.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import RoleGate from '../auth/RoleGate.jsx';
 import { can } from '../../context/permissions.js';
+
+const LOW_CHARGE_THRESHOLD = 20;
 
 function EquipmentDataGrid({onSuccess}){
     const [equipment, setEquipment] = useState([]);
@@ -94,8 +97,17 @@ function EquipmentDataGrid({onSuccess}){
     const baseColumns = [
         {field: 'id', headerName: 'ID', width: 70},
         {field: 'serial_number', headerName: 'Serial Number', width: 150},
-        {field: 'model', headerName: 'Model', width: 180},
-        {field: 'charge_level', headerName: 'Charge Level', width: 100, type:'number'},
+        {field: 'model', headerName: 'Model', width: 260},
+        {field: 'charge_level', headerName: 'Charge Level', width: 120, type:'number',
+            renderCell: (params) => (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+                    {params.value}%
+                    {params.value < LOW_CHARGE_THRESHOLD && (
+                        <BatteryAlert color="error" fontSize='small'/>
+                    )}
+                </Box>
+            ),
+        },
         {field: 'status', headerName: 'Status', width: 120},
         {field: 'hospital_id', headerName: 'Hospital ID', width: 70, type: 'number'},
     ];

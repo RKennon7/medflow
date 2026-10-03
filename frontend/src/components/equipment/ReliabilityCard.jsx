@@ -14,12 +14,12 @@ function ReliabilityCard({equipmentModel, completedCount, failedCount}) {
         <Card elevation={2} sx={{maxWidth: 360, borderRadius: 3, p: 1}}>
           <CardContent>
             {/** Header & success metric */}
-            <Stack direction="row" sx={{justifyContent: 'space-between', alignItems: 'flex-start', mb: 1}}>
+            <Stack direction="row" sx={{justifyContent: 'space-between', alignItems: "center", mb: 1, mr: 1}}>
               <Box>
                 <Typography variant="h6" fontWeight="bold">{equipmentModel}: </Typography>
                 <Typography variant="body2" color="text.secondary">Total Work Orders: {total}</Typography>
               </Box>
-              <Box sx={{textAlign: "right"}}>
+              <Box sx={{width: '30%'}}>
                 <Typography variant="h5" fontWeight="bold" color="success.main">
                     {successRate}%
                 </Typography>
