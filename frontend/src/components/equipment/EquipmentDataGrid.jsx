@@ -5,6 +5,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import apiClient from '../../api/client.js';
 import EquipmentFormDialog from './EquipmentFormDialog.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
+import RoleGate from '../auth/RoleGate.jsx';
+import { can } from '../../context/permissions.js';
 
 function EquipmentDataGrid({onSuccess}){
     const [equipment, setEquipment] = useState([]);
@@ -13,6 +16,8 @@ function EquipmentDataGrid({onSuccess}){
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const {user} = useAuth();
+    const showActions = can.edit(user?.role) || can.delete(user?.role);
 
     // handler for when add button is clicked
     const handleAddClick = () => {
@@ -53,7 +58,13 @@ function EquipmentDataGrid({onSuccess}){
         if(editingRow) {
             // case for edit: use patch
             verb = "updated"
-            await apiClient.patch(`/equipment/${editingRow.id}`, formData);
+            // use different api calls for technician vs admin:
+            if(can.editAllFields(user?.role)){
+                await apiClient.patch(`/equipment/${editingRow.id}`, formData);
+            } else {
+                await apiClient.patch(`/equipment/${editingRow.id}/status`, formData);
+            }
+            
         } else {
             // case for create: post
             verb = "created";
@@ -80,29 +91,38 @@ function EquipmentDataGrid({onSuccess}){
     }
 
     // define DataGrid columns and map them to api response data
-    const columns = [
+    const baseColumns = [
         {field: 'id', headerName: 'ID', width: 70},
         {field: 'serial_number', headerName: 'Serial Number', width: 150},
         {field: 'model', headerName: 'Model', width: 180},
         {field: 'charge_level', headerName: 'Charge Level', width: 100, type:'number'},
         {field: 'status', headerName: 'Status', width: 120},
         {field: 'hospital_id', headerName: 'Hospital ID', width: 70, type: 'number'},
-        {
-            field: 'actions', headerName: 'Actions', width: 100, type:'actions',
-            getActions: (params) => [
-                <GridActionsCellItem
-                  icon={<EditIcon />}
-                  label="Edit"
-                  onClick={() => handleEditClick(params.row)}
-                />,
-                <GridActionsCellItem
-                  icon={<DeleteIcon />}
-                  label="Delete"
-                  onClick={() => handleDeleteClick(params.row)}
-                />,
-            ],
-        },
     ];
+
+    const actionsColumn = {
+        field: 'actions', headerName: 'Actions', width: 100, type:'actions',
+        getActions: (params) => (
+            <>
+            {can.edit(user?.role) &&
+                <GridActionsCellItem
+                    icon={<EditIcon />}
+                    label="Edit"
+                    onClick={() => handleEditClick(params.row)}
+                />
+            }
+            {can.delete(user?.role) &&
+                <GridActionsCellItem
+                    icon={<DeleteIcon />}
+                    label="Delete"
+                    onClick={() => handleDeleteClick(params.row)}
+                />
+            }
+            </>
+        ),
+    };
+
+    const columns = showActions ? [...baseColumns, actionsColumn] : baseColumns;
 
     // spinning progress indicator if loading data
     if (loading) return <CircularProgress />;
@@ -113,7 +133,10 @@ function EquipmentDataGrid({onSuccess}){
     // loads data grid component if successful
     return (
         <Box>
-          <Button variant="contained" sx={{mb: 2}} onClick={handleAddClick}>Add Equipment</Button>
+          <RoleGate roles={["Clinical Admin"]}>
+            <Button variant="contained" sx={{mb: 2}} onClick={handleAddClick}>Add Equipment</Button>
+          </RoleGate>
+          
           <Box sx={{height: 400, width: '100%'}}>
             <DataGrid rows={equipment} columns={columns} getRowId={(row) => row.id} />
           </Box>

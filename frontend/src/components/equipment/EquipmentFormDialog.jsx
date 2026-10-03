@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react';
 import {Dialog, DialogTitle, DialogContent, InputLabel, Select, MenuItem,
     FormControl, DialogActions, TextField, Button} from '@mui/material';
+import RoleGate from '../auth/RoleGate';
 
 const STATUS_OPTIONS = ['Available', 'In-Use', 'Maintenance', 'Offline'];
 
@@ -26,14 +27,16 @@ function EquipmentFormDialog({open, initialValues, onClose, onSave}){
         <Dialog open={open} onClose={onClose} fullWidth>
           <DialogTitle>{initialValues ? 'Edit Equipment' : 'Add New Equipment'}</DialogTitle>
           <DialogContent>
-            <TextField label="Serial Number" value={formData.serial_number}
-              onChange={handleChange('serial_number')} fullWidth margin='dense' />
-            <TextField label="Model" value={formData.model}
-              onChange={handleChange('model')} fullWidth margin='dense' />
-            <TextField label="Charge Level %" value={formData.charge_level}
-              onChange={handleChargeChange} fullWidth margin='dense' />
-            <TextField label="Hospital ID" value={formData.hospital_id}
-              onChange={handleChange('hospital_id')} fullWidth margin='dense' type='number' />
+            <RoleGate roles={["Clinical Admin"]}>
+              <TextField label="Serial Number" value={formData.serial_number}
+                onChange={handleChange('serial_number')} fullWidth margin='dense' />
+              <TextField label="Model" value={formData.model}
+                onChange={handleChange('model')} fullWidth margin='dense' />
+              <TextField label="Charge Level %" value={formData.charge_level}
+                onChange={handleChargeChange} fullWidth margin='dense' />
+              <TextField label="Hospital ID" value={formData.hospital_id}
+                onChange={handleChange('hospital_id')} fullWidth margin='dense' type='number' />
+            </RoleGate>
             <TextField select label="Status" value={formData.status}
               onChange={handleChange('status')} fullWidth margin='dense' >
                 {STATUS_OPTIONS.map((option) => (
