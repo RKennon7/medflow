@@ -247,3 +247,4 @@ Day9_setup.txt
 Day10_setup.txt
 package
 backend/lambda-env.json
+bin/seed.sh
