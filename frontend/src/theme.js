@@ -1,18 +1,24 @@
 import {createTheme} from '@mui/material/styles';
 
-const theme = createTheme({
-  "palette": {
-    "primary": {
-      "main": "#a5daee"
-    },
-    "secondary": {
-      "main": "#7ae697"
-    },
-    "background": {
-      "default": "#020712",
-      "paper": "#020712"
-    },
-    "mode": "dark"
+const palettes = {
+  dark: {
+    primary: { main: '#a5daee' },
+    secondary: { main: '#7ae697' },
+    background: { default: '#020712', paper: '#020712' },
+    title: { main: '#a5daee' },
+  },
+  light: {
+    primary: { main: '#1a7a99' },
+    secondary: { main: '#7ae697' },
+    background: { default: '#dfdddf', paper: 'rgb(241, 240, 241)' },
+    title: { main: 'rgb(241, 240, 241)' },
+  },
+};
+
+export const getTheme = (mode) => createTheme({
+  palette: {
+    mode,
+    ...palettes[mode],
   },
   "typography": {
     "fontFamily": "Space Grotesk",
@@ -27,4 +33,4 @@ const theme = createTheme({
   }
 });
 
-export default theme;
+export default getTheme;
