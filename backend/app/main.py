@@ -1,9 +1,13 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
+# from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
+# from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+# from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
-from app.routers import auth, equipment, hospitals, work_orders
+from app.routers import auth, equipment, hospitals, work_orders, health
+from app.dependencies import get_db, require_role
+
 
 FRONTEND_ORIGIN = settings.frontend_origin
 
@@ -27,8 +31,5 @@ app.include_router(equipment.router)
 app.include_router(hospitals.router)
 app.include_router(work_orders.router)
 app.include_router(auth.router)
+app.include_router(health.router)
 
-# simple health check endpoint
-@app.get("/health", tags=["health"])
-async def health_check() -> dict[str,str]:
-    return{"status": "ok"}
