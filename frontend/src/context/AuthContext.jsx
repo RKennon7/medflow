@@ -1,4 +1,5 @@
-import {createContext, useContext, useMemo, useState} from 'react';
+import {createContext, useContext, useEffect, useMemo, useState} from 'react';
+import { tokenStore, setSessionExpiredHandler, setTokensRefreshedHandler } from "../api/client";
 import apiClient from "../api/client";
 
 // global auth state using react's context api
@@ -12,9 +13,15 @@ function decodeToken(token){
 }
 
 export function AuthProvider({children}) {
-    const [token, setToken] = useState(() => localStorage.getItem('medToken'));
+    const [token, setToken] = useState(() => tokenStore.getAccess());
     
     const user = useMemo(() => (token ? decodeToken(token): null), [token]);
+
+    // let axios interceptor update React state
+    useEffect(() => {
+        setTokensRefreshedHandler((newAccess) => setToken(newAccess));
+        setSessionExpiredHandler(() => setToken(null));
+    }, []);
 
     const login = async (username, password) => {
         const formData = new URLSearchParams();
@@ -24,13 +31,22 @@ export function AuthProvider({children}) {
         const response = await apiClient.post('/auth/token', formData, {
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         });
-        localStorage.setItem('medToken', response.data.access_token);
-        setToken(response.data.access_token);
-    }
 
-    const logout = () => {
-        localStorage.removeItem('medToken');
+        tokenStore.set(response.data);
+        setToken(response.data.access_token);
+    };
+
+    const logout = async () => {
+        const refreshToken = tokenStore.getRefresh();
+        tokenStore.clear();
         setToken(null);
+        if(refreshToken) {
+            try {
+                await apiClient.post('/auth/logout', { refresh_token: refreshToken });
+            } catch {
+                /** already logged out locally -> ignore */
+            }
+        }
     };
 
     // bundles auth state vars and action function into a single obj

@@ -25,13 +25,19 @@ async def get_current_user(
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate", "Bearer"}
+        headers={"WWW-Authenticate": "Bearer"}
     )
     try:
         payload = decode_access_token(token)
         username = payload.get("sub")
         if username is None:
             raise credentials_exception
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     except jwt.InvalidTokenError:
         raise credentials_exception
 
