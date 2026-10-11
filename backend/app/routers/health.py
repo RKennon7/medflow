@@ -9,17 +9,17 @@ from app.schemas.health import HealthDetails, CheckResult
 import asyncio
 import boto3
 from botocore.config import Config
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
 
 router = APIRouter(prefix="/health", tags=["health"])
 
 # simple health check endpoint
-@router.get("/health")
+@router.get("")
 async def health_check() -> dict[str,str]:
     return{"status": "ok"}
 
 # health check endpoint to check if database is available/ready
-@router.get("/health/ready")
+@router.get("/ready")
 async def health_check_db_ready(
     db: AsyncSession = Depends(get_db)
 ):
@@ -36,31 +36,34 @@ async def health_check_db_ready(
 # helper to check database for detail
 async def check_db(db: AsyncSession) -> CheckResult:
     try:
-        version = await asyncio.wait_for(db.scalar(text("SELECT version()")), timeout=3)
+        await db.execute(text("SET LOCAL statement_timeout = 3000"))
+        version = await db.scalar(text("SELECT version()"))
         return CheckResult(status="ok", version=version)
-    except (SQLAlchemyError, OSError, asyncio.TimeoutError) as e:
+    except (SQLAlchemyError, OSError) as e:
+        await db.rollback()
         return CheckResult(status="unavailable", error=type(e).__name__)
 
 # helper to check s3 for detail
 async def check_s3() -> CheckResult:
-    s3_client = boto3.client(
-        's3',
-        config=Config(
-        connect_timeout=3,
-        read_timeout=3,
-        retries={"max_attempts": 1},
-        ),
-    )
-    try:
-        resp = s3_client.head_bucket(
-            Bucket="medflow-frontend-rbk7",
+    def _head():
+        s3_client = boto3.client(
+            's3',
+            config=Config(
+            connect_timeout=3,
+            read_timeout=3,
+            retries={"max_attempts": 1},
+            ),
         )
+        return s3_client.head_bucket(Bucket="medflow-frontend-rbk7")
+    
+    try:
+        resp = await asyncio.to_thread(_head)
         fields = {
             "status": "ok",
             "bucket": resp.get("BucketArn"),
             "region": resp.get("BucketRegion"),
         }
-    except ClientError as e:
+    except (ClientError, BotoCoreError) as e:
         fields = {"status": "unavailable", "error": e.response["Error"]["Code"]}
 
     result = CheckResult(**fields)
@@ -68,7 +71,7 @@ async def check_s3() -> CheckResult:
 
 
 # admin-only health check reports DB and S3 status separately
-@router.get("/health/detail", response_model=HealthDetails, response_model_exclude_none=True, )
+@router.get("/detail", response_model=HealthDetails, response_model_exclude_none=True, )
 async def health_check_detail(
     response: Response,
     db: AsyncSession = Depends(get_db),
