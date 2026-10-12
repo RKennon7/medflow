@@ -6,6 +6,7 @@ import LoginForm from './components/auth/LoginForm.jsx';
 import {AuthProvider, useAuth} from './context/AuthContext.jsx';
 import EquipmentDataGrid from './components/equipment/EquipmentDataGrid.jsx';
 import ReliabilityList from './components/equipment/ReliabilityList.jsx';
+import WorkOrderDataGrid from './components/work-orders/WorkOrderDataGrid.jsx';
 import DiscrepancyDataGrid from './components/work-orders/DiscrepancyDataList.jsx';
 import MaintenanceFlags from './components/analytics/MaintenanceFlags.jsx';
 import ReportingLines from './components/analytics/ReportingLines.jsx';
@@ -44,7 +45,15 @@ function Dashboard(){
         )}
 
         {activeTab === 1 && (
-          <><Typography variant="h5" component="h2" color='primary' gutterBottom>
+          <>
+          <Typography variant="h5" component="h2" color='primary' gutterBottom>
+            Work Orders
+          </Typography>
+          <Box sx={{mb: 4}}>
+            <WorkOrderDataGrid onSuccess={setNotification} />
+          </Box>
+
+          <Typography variant="h5" component="h2" color='primary' gutterBottom>
             Co-Location Discrepancies
           </Typography>
           <Box sx={{mb: 4}}>

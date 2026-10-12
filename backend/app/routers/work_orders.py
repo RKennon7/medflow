@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db, get_current_user
-from app.models import WorkOrder, WorkOrderPriority, Equipment, Technician, User
-from app.schemas.work_order import DiscrepancyRead, WorkOrderRead, WorkOrderStatusUpdate
+from app.dependencies import get_db, get_current_user, require_role
+from app.models import WorkOrder, WorkOrderPriority, Equipment, Technician, User, UserRole
+from app.schemas.work_order import DiscrepancyRead, WorkOrderRead, WorkOrderStatusUpdate, WorkOrderUpdate, WorkOrderCreate
 
 router = APIRouter(prefix="/work-orders", tags=["work-orders"])
 
@@ -17,6 +17,19 @@ async def list_work_orders(
     statement = select(WorkOrder).order_by(WorkOrder.id)
     result = await db.execute(statement)
     return list(result.scalars().all())
+
+# create new work order, requires admin
+@router.post("", response_model=WorkOrderRead)
+async def create_work_order(
+    payload: WorkOrderCreate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(UserRole.CLINICAL_ADMIN))
+) -> WorkOrder:
+    work_order = WorkOrder(**payload.model_dump())
+    db.add(work_order)
+    await db.commit()
+    await db.refresh(work_order)
+    return work_order
 
 """
 route to return co-location discrepancies between technician and equipment location
@@ -49,3 +62,64 @@ async def get_colocation_discrepancies(
 
     result = await db.execute(statement)
     return [dict(row) for row in result.mappings().all()]
+
+
+# update work order, requires admin
+@router.patch("/{work_order_id}", response_model=WorkOrderRead)
+async def update_work_order(
+    work_order_id: int,
+    payload: WorkOrderUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user)
+) -> WorkOrder:
+    work_order = await db.get(WorkOrder, work_order_id)
+    if work_order is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Work order with id {work_order_id} not found.",
+        )
+
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(work_order, field, value)
+
+    await db.commit()
+    await db.refresh(work_order)
+    return work_order
+
+# delete a work order: requires admin
+@router.delete("/{work_order_id}")
+async def delete_work_order(
+    work_order_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(UserRole.CLINICAL_ADMIN))
+):
+    work_order = await db.get(WorkOrder, work_order_id)
+    if work_order is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Work order with id {work_order_id} not found.",
+        )
+    await db.delete(work_order)
+    await db.commit()
+    return {"message": "Item deleted successfully"}
+
+# technician endpoint to update work order status:
+@router.patch("/{work_order_id}/status", response_model=WorkOrderRead)
+async def update_work_order_status(
+    work_order_id: int,
+    payload: WorkOrderStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(UserRole.FIELD_TECHNICIAN))
+) -> WorkOrder:
+    work_order = await db.get(WorkOrder, work_order_id)
+    if work_order is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Work order with id {work_order_id} not found.",
+        )
+
+    work_order.status = payload.status
+    await db.commit()
+    await db.refresh(work_order)
+    return work_order
