@@ -5,7 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 # from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
-from app.routers import auth, equipment, hospitals, work_orders, health
+from app.routers import auth, equipment, hospitals, work_orders, health, service_reports
 from app.dependencies import get_db, require_role
 
 
@@ -30,6 +30,7 @@ app.add_middleware(
 app.include_router(equipment.router)
 app.include_router(hospitals.router)
 app.include_router(work_orders.router)
+app.include_router(service_reports.router)
 app.include_router(auth.router)
 app.include_router(health.router)
 

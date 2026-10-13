@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     frontend_origin: str = "http://localhost:5173"
     access_token_expire_minutes: int
     refresh_token_expire_days: int
+    report_bucket_name: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
