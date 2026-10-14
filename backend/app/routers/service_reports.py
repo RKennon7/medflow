@@ -1,9 +1,12 @@
 import uuid, boto3
+import logging
+from botocore.exceptions import ClientError
+from botocore.config import Config
 from app.config import settings
 from app.dependencies import get_db, get_current_user, require_role
 from app.models import User, UserRole, ServiceReport
-from app.schemas.service_report import ServiceReportCreate, ServiceReportRead
-from fastapi import APIRouter, Depends, File, Form, UploadFile, Query
+from app.schemas.service_report import ServiceReportCreate, ServiceReportRead, ServiceReportFileUrl
+from fastapi import APIRouter, Depends, File, Form, UploadFile, Query, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from typing import Annotated
 from sqlalchemy import select
@@ -13,7 +16,13 @@ BUCKET_NAME = settings.report_bucket_name
 
 router = APIRouter(prefix="/service-reports", tags=["service-reports"])
 
-s3 = boto3.client("s3")
+s3 = boto3.client(
+    "s3",
+    region_name="us-east-2",
+    config=Config(signature_version="s3v4"),
+    )
+
+logger = logging.getLogger(__name__)
 
 # helper function to upload file to S3 bucket
 async def upload_to_s3(file: UploadFile, work_order_id: int) -> str:
@@ -63,3 +72,62 @@ async def list_service_reports(
         statement = statement.where(ServiceReport.work_order_id == work_order_id)
     result = await db.execute(statement)
     return result.scalars().all()
+
+# endpoint to delete a service report. requires admin
+# deletes the db record and deletes the file from the s3 bucket
+@router.delete("/{report_id}")
+async def delete_service_report(
+    report_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(UserRole.CLINICAL_ADMIN))
+):
+    report = await db.get(ServiceReport, report_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="Service report not found")
+
+    # get key before deleting record
+    key = report.file_url
+    await db.delete(report)
+    await db.commit()
+
+    try:
+        await run_in_threadpool(s3.delete_object, Bucket=BUCKET_NAME, Key=key)
+    except ClientError:
+        logger.exception("Deleted report %s but failed to delete S3 object %s", report_id, key)
+
+    return {"message": "Item deleted successfully"}
+
+
+# endpoint to return a presigned file url for a specific service report ID
+@router.get("/{report_id}/file", response_model=ServiceReportFileUrl)
+async def get_service_report_file(
+    report_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user)
+):
+    report = await db.get(ServiceReport, report_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="Service report not found")
+
+    expires_in = 300
+
+    # check if key points to a real object in the S3 bucket
+    try:
+        await run_in_threadpool(s3.head_object, Bucket=BUCKET_NAME, Key=report.file_url)
+    except ClientError as e:
+        if e.response["Error"]["Code"] in ("404", "NoSuchKey", "NotFound"):
+            raise HTTPException(status_code=404, detail="File not found in storage")
+        raise HTTPException(status_code=502, detail="Could not check file")
+
+    # generate a presigned url for viewing the file
+    try:
+        url = await run_in_threadpool(
+            s3.generate_presigned_url,
+            "get_object",
+            Params={"Bucket": BUCKET_NAME, "Key": report.file_url},
+            ExpiresIn=expires_in,
+        )
+    except ClientError:
+        raise HTTPException(status_code=502, detail="Could not generate file link")
+
+    return ServiceReportFileUrl(url=url, expires_in=expires_in)

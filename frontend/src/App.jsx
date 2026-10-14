@@ -8,6 +8,7 @@ import EquipmentDataGrid from './components/equipment/EquipmentDataGrid.jsx';
 import ReliabilityList from './components/equipment/ReliabilityList.jsx';
 import WorkOrderDataGrid from './components/work-orders/WorkOrderDataGrid.jsx';
 import DiscrepancyDataGrid from './components/work-orders/DiscrepancyDataList.jsx';
+import ServiceReportDataGrid from './components/service-reports/ServiceReportDataGrid.jsx';
 import MaintenanceFlags from './components/analytics/MaintenanceFlags.jsx';
 import ReportingLines from './components/analytics/ReportingLines.jsx';
 
@@ -23,6 +24,7 @@ function Dashboard(){
         <Tab label="Equipment" />
         <Tab label="Work Orders" />
         <Tab label="Analytics" />
+        <Tab label="Service Reports" />
       </Tabs>
       <Container maxWidth="lg" sx={{mt: 4}}>
         {activeTab === 0 && (
@@ -80,6 +82,18 @@ function Dashboard(){
           
           </>
         )}
+
+        {activeTab === 3 && (
+          <>
+          <Typography variant="h5" component="h2" color='primary' gutterBottom>
+            Service Reports
+          </Typography>
+          <Box sx={{mb: 4}}>
+            <ServiceReportDataGrid onSuccess={setNotification} />
+          </Box>
+          </>
+        )}
+
       </Container>
       <Snackbar
         open={Boolean(notification)}

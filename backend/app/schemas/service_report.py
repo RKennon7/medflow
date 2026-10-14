@@ -13,3 +13,7 @@ class ServiceReportRead(BaseModel):
     timestamp: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class ServiceReportFileUrl(BaseModel):
+    url: str
+    expires_in: int
