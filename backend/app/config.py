@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int
     refresh_token_expire_days: int
     report_bucket_name: str
+    mongodb_uri: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
